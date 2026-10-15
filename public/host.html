@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quizmeister Arena – Quizmaster</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="host">
+<header class="topbar">
+  <a class="brand" href="/">Quizmeister <span>Arena</span></a>
+  <div id="roomInfo" class="top-mid hidden">
+    <span class="room-code">Raum <b id="roomCode">----</b></span>
+    <div class="linkbox"><input id="inviteLink" readonly aria-label="Einladungslink"><button type="button" class="btn sm primary" data-copy="inviteLink">Einladung kopieren</button></div>
+    <div class="linkbox"><input id="watchLink" readonly aria-label="Zuschauer-Link"><button type="button" class="btn sm ghost" data-copy="watchLink">Zuschauer-Link</button></div>
+    <button type="button" class="btn sm ghost" id="switchRoom">Neue Runde</button>
+  </div>
+  <div class="top-right"><span id="conn" class="conn">verbinde…</span><div id="sound"></div></div>
+</header>
+
+<section id="loginView" class="view center">
+  <form id="loginForm" class="card narrow">
+    <h1>Quizmaster-Login</h1>
+    <label>Passwort<input type="password" id="pwInput" required autocomplete="current-password"></label>
+    <button class="btn primary big" type="submit">Anmelden</button>
+    <p id="loginError" class="error"></p>
+  </form>
+</section>
+
+<section id="setupView" class="view center hidden">
+  <div class="card narrow">
+    <h1>Neue Spielrunde</h1>
+    <p class="muted">Es werden ein Raumcode und ein Einladungslink für deine Mitspieler erzeugt.</p>
+    <button id="createBtn" type="button" class="btn primary big">Runde anlegen</button>
+  </div>
+</section>
+
+<section id="dashView" class="view hidden">
+  <div class="dash">
+    <div class="dash-main">
+      <div id="hostBoard" class="board"></div>
+      <div class="card ctrl-card">
+        <div id="hostTimer" class="timer idle"></div>
+        <div id="ctrl"></div>
+        <div id="buzzLog" class="buzzlog"></div>
+      </div>
+    </div>
+    <aside class="dash-side">
+      <div class="card">
+        <div class="card-head"><h2>Spieler <span id="playerCount" class="pill">0</span></h2></div>
+        <div id="playerList" class="plist"></div>
+        <form id="addPlayerForm" class="row"><input id="addPlayerName" maxlength="24" placeholder="Spieler selbst anlegen" style="flex:1"><button type="submit" class="btn sm">Hinzufügen</button></form>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>Einstellungen</h2></div>
+        <form id="settingsForm" class="settings" onsubmit="return false">
+          <label>Antwortzeit (s)<input type="number" data-key="answerTime" min="5" max="300"></label>
+          <label>Zeit nach Buzzer (s)<input type="number" data-key="buzzAnswerTime" min="5" max="300"></label>
+          <label>Buzzer offen max. (s, 0 = ∞)<input type="number" data-key="buzzOpenTime" min="0" max="300"></label>
+          <label>Buzzer-Fenster (ms)<input type="number" data-key="buzzWindow" min="0" max="2000" step="50"></label>
+          <label>Buzzer-Modus<select data-key="fairBuzz"><option value="true">Fair (Latenz ausgeglichen)</option><option value="false">Einfach (wer zuerst ankommt)</option></select></label>
+          <label>Feldwahl<select data-key="pickBy"><option value="player">Spieler klickt selbst</option><option value="host">Quizmaster klickt</option></select></label>
+          <label>Kategorien (3–6)<input type="number" data-key="numCats" min="3" max="6"></label>
+          <label>Stufen (3–6)<input type="number" data-key="numLevels" min="3" max="6"></label>
+          <label class="check full"><input type="checkbox" data-key="penaltyBuzz"> Halbe Punkte Abzug auch nach Buzzer</label>
+          <label class="check full"><input type="checkbox" data-key="textAnswers"> Antwort per Textfeld (nur du siehst sie)</label>
+        </form>
+      </div>
+    </aside>
+    <details class="card dash-full editor-card">
+      <summary>Fragen-Editor</summary>
+      <div class="ed-toolbar">
+        <button type="button" class="btn sm" id="edAddCat">+ Kategorie</button>
+        <button type="button" class="btn sm primary" id="edApply">Fragen übernehmen</button>
+        <button type="button" class="btn sm ghost" id="edReset">Änderungen verwerfen</button>
+        <label class="btn sm ghost file-btn">JSON importieren<input type="file" id="edImport" accept=".json,application/json" hidden></label>
+        <button type="button" class="btn sm ghost" id="edExport">JSON exportieren</button>
+        <span id="edDirty" class="gold small"></span>
+      </div>
+      <p class="muted small">Auf dem Board erscheinen nur so viele Kategorien und Stufen, wie in den Einstellungen festgelegt. Änderungen gelten erst nach „Fragen übernehmen“. Render speichert nichts dauerhaft – exportiere deine Fragen und committe sie als <code>questions.json</code> ins Repo.</p>
+      <div id="editor" class="ed-grid"></div>
+    </details>
+  </div>
+</section>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/common.js"></script>
+<script src="/js/host.js"></script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: quizmeister-arena
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: HOST_PASSWORD
+        sync: false
+      - key: NODE_VERSION
+        value: "20"

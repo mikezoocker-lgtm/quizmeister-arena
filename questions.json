@@ -1,0 +1,70 @@
+{
+  "categories": [
+    {
+      "name": "Tierisch komisch",
+      "questions": [
+        { "value": 100, "question": "Welches Tier wird gern „König der Tiere“ genannt?", "answer": "Der Löwe" },
+        { "value": 200, "question": "Wie viele Herzen hat ein Oktopus?", "answer": "Drei" },
+        { "value": 300, "question": "Welches Säugetier kann als einziges aktiv fliegen?", "answer": "Die Fledermaus" },
+        { "value": 400, "question": "Welches Tier verschläft bis zu 22 Stunden am Tag?", "answer": "Der Koala" },
+        { "value": 500, "question": "Welches Tier hinterlässt würfelförmigen Kot?", "answer": "Der Wombat" },
+        { "value": 600, "question": "Wie viele Magenkammern hat eine Kuh?", "answer": "Vier" }
+      ]
+    },
+    {
+      "name": "Futter bei die Fische",
+      "questions": [
+        { "value": 100, "question": "Aus welchem Land stammt die Pizza Margherita?", "answer": "Italien" },
+        { "value": 200, "question": "Welche Frucht trägt ihre Samen außen?", "answer": "Die Erdbeere" },
+        { "value": 300, "question": "Was ist die Hauptzutat von Guacamole?", "answer": "Avocado" },
+        { "value": 400, "question": "Welches Gewürz ist, nach Gewicht, das teuerste der Welt?", "answer": "Safran" },
+        { "value": 500, "question": "Welches Getränk wurde ursprünglich in Apotheken als Arznei verkauft?", "answer": "Coca-Cola" },
+        { "value": 600, "question": "Aus welcher Pflanze wird Tequila hergestellt?", "answer": "Blaue Agave" }
+      ]
+    },
+    {
+      "name": "Erdkunde für Faule",
+      "questions": [
+        { "value": 100, "question": "Auf welchem Kontinent liegt Ägypten?", "answer": "Afrika" },
+        { "value": 200, "question": "Wie heißt der kleinste Staat der Welt?", "answer": "Vatikanstadt" },
+        { "value": 300, "question": "Wie heißt die Hauptstadt Australiens?", "answer": "Canberra" },
+        { "value": 400, "question": "In welchem Land liegt Timbuktu?", "answer": "Mali" },
+        { "value": 500, "question": "Welches Land hat – Überseegebiete mitgezählt – die meisten Zeitzonen?", "answer": "Frankreich (12)" },
+        { "value": 600, "question": "Welcher ist der tiefste See der Erde?", "answer": "Der Baikalsee" }
+      ]
+    },
+    {
+      "name": "Popcorn-Kino",
+      "questions": [
+        { "value": 100, "question": "Welcher Zauberlehrling trägt eine blitzförmige Narbe?", "answer": "Harry Potter" },
+        { "value": 200, "question": "Wie heißt der sprechende Schneemann in „Die Eiskönigin“?", "answer": "Olaf" },
+        { "value": 300, "question": "In welcher US-Stadt spielt „Breaking Bad“?", "answer": "Albuquerque" },
+        { "value": 400, "question": "Wie heißt das Raumschiff von Han Solo?", "answer": "Millennium Falke" },
+        { "value": 500, "question": "Welcher Film gewann als erster nicht-englischsprachiger den Oscar als „Bester Film“?", "answer": "Parasite" },
+        { "value": 600, "question": "Wie heißt der Hund von Doc Brown in „Zurück in die Zukunft“?", "answer": "Einstein" }
+      ]
+    },
+    {
+      "name": "Wissenschaft mit Schmackes",
+      "questions": [
+        { "value": 100, "question": "Welcher Planet ist der Sonne am nächsten?", "answer": "Merkur" },
+        { "value": 200, "question": "Wie lautet das chemische Symbol für Gold?", "answer": "Au" },
+        { "value": 300, "question": "Wie viele Knochen hat ein erwachsener Mensch?", "answer": "206" },
+        { "value": 400, "question": "Was misst die Einheit Hertz?", "answer": "Frequenz" },
+        { "value": 500, "question": "Welches Metall ist bei Raumtemperatur flüssig?", "answer": "Quecksilber" },
+        { "value": 600, "question": "Welche Blutgruppe gilt als Universalspender?", "answer": "0 negativ" }
+      ]
+    },
+    {
+      "name": "Deutsche Sprache, schwere Sprache",
+      "questions": [
+        { "value": 100, "question": "Wie viele Buchstaben hat das Alphabet ohne Umlaute und ß?", "answer": "26" },
+        { "value": 200, "question": "Wie lautet der Plural von „Kaktus“?", "answer": "Kakteen" },
+        { "value": 300, "question": "Was bezeichnet das Wort „Kummerspeck“?", "answer": "Gewichtszunahme durch Frustessen" },
+        { "value": 400, "question": "Wie nennt man ein Wort, das vorwärts wie rückwärts gleich lautet?", "answer": "Palindrom" },
+        { "value": 500, "question": "Was ist ein „Backpfeifengesicht“?", "answer": "Ein Gesicht, das förmlich nach einer Ohrfeige verlangt" },
+        { "value": 600, "question": "Was ist ein „Dreikäsehoch“?", "answer": "Ein kleines Kind", "image": "" }
+      ]
+    }
+  ]
+}

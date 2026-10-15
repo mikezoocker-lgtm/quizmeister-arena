@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quizmeister Arena – Zuschauen</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="watch">
+<header class="topbar">
+  <a class="brand" href="/">Quizmeister <span>Arena</span></a>
+  <div class="top-right"><span class="pill">Zuschauer</span><span id="roomBadge" class="pill"></span><span id="conn" class="conn">verbinde…</span><div id="sound"></div></div>
+</header>
+<div id="pauseBanner" class="banner hidden">Pausiert – der Quizmaster ist kurz offline.</div>
+
+<section id="joinView" class="view center">
+  <form id="joinForm" class="card narrow">
+    <h1>Zuschauen</h1>
+    <label>Raumcode<input id="codeInput" maxlength="4" autocomplete="off" autocapitalize="characters" required></label>
+    <button class="btn primary big" type="submit">Zuschauen</button>
+    <p id="joinError" class="error"></p>
+  </form>
+</section>
+
+<section id="gameView" class="view hidden">
+  <div class="layout">
+    <main>
+      <div id="status" class="status"></div>
+      <div id="lobby" class="lobby hidden"><h1>Lobby</h1><p class="muted">Das Spiel beginnt gleich.</p><ul id="lobbyList"></ul></div>
+      <div id="board" class="board"></div>
+    </main>
+    <aside id="scores" class="scores"></aside>
+  </div>
+</section>
+
+<div id="questionOverlay" class="overlay hidden">
+  <div class="q-wrap">
+    <div class="q-head"><span id="qCat"></span><span id="qValue" class="q-value"></span></div>
+    <div id="qTimer" class="timer idle"></div>
+    <div class="q-text"><span id="qText"></span><img id="qImg" class="q-img hidden" alt=""></div>
+    <div id="qAnswer" class="q-answer hidden"><small>Antwort</small><span id="qAnswerText"></span></div>
+    <div id="qStatus" class="q-status"></div>
+  </div>
+  <div id="qScores" class="q-scores"></div>
+</div>
+
+<div id="endOverlay" class="overlay hidden"><div class="end-wrap"><h1 class="end-title">Siegerehrung</h1><div id="podium"></div></div></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/common.js"></script>
+<script>window.MODE = 'watch';</script>
+<script src="/js/play.js"></script>
+</body>
+</html>

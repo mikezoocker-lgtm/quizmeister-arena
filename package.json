@@ -1,0 +1,18 @@
+{
+  "name": "quizmeister-arena",
+  "version": "1.0.0",
+  "description": "Online-Quizshow (Jeopardy-Format) mit Host-Steuerpult, fairem Buzzer und Live-Sync über Socket.IO",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.21.1",
+    "socket.io": "^4.8.1"
+  },
+  "license": "MIT"
+}
