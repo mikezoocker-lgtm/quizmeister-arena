@@ -73,16 +73,14 @@
     $('#lobby').classList.toggle('hidden', !lobby);
     $('#board').classList.toggle('hidden', lobby);
     if (lobby) $('#lobbyList').innerHTML = st.players.map(p => `<li style="--pc:${p.color}"><span class="dot ${p.online ? 'on' : 'off'}"></span>${esc(p.name)}${p.id === id ? ' <em>(du)</em>' : ''}</li>`).join('') || '<li class="muted">Noch niemand da…</li>';
-    const canPick = MODE === 'play' && st.phase === 'board' && st.settings.pickBy === 'player' && st.selector === id && !st.hostPaused;
-    Q.renderBoard($('#board'), st, { canPick, onPick });
-    $('#board').classList.toggle('my-turn', canPick);
+    Q.renderBoard($('#board'), st, { canPick: false });
     Q.renderScores($('#scores'), st, { meId: id });
 
     let s = '';
     if (lobby) s = '';
     else if (st.phase === 'board') {
-      if (st.selector === id) s = st.settings.pickBy === 'player' ? '<b>Du bist am Zug!</b> Wähle ein Feld.' : '<b>Du bist am Zug!</b> Sag dem Quizmaster dein Feld.';
-      else s = `<b>${nm(st.selector)}</b> ist am Zug und wählt ein Feld.`;
+      if (st.selector === id) s = '<b>Du bist am Zug!</b> Sag dem Quizmaster Kategorie und Punktwert.';
+      else s = `<b>${nm(st.selector)}</b> ist am Zug – der Quizmaster öffnet das Feld.`;
     }
     $('#status').innerHTML = s;
 
@@ -95,9 +93,6 @@
     } else { $('#endOverlay').classList.add('hidden'); endShown = false; }
   }
 
-  function onPick(c, l) {
-    socket.emit('player:pick', { c, l }, res => { if (!res || !res.ok) Q.toast((res && res.error) || 'Nicht möglich.', 'bad'); });
-  }
 
   function renderQuestion() {
     const cur = st.current, ov = $('#questionOverlay'), id = myId();
@@ -110,6 +105,9 @@
     if (cur.image) { if (img.getAttribute('src') !== cur.image) img.src = cur.image; img.classList.remove('hidden'); } else img.classList.add('hidden');
     $('#qAnswer').classList.toggle('hidden', !cur.revealed);
     $('#qAnswerText').textContent = cur.answer || '';
+    const aimg = $('#qAnsImg');
+    if (cur.revealed && cur.answerImage) { if (aimg.getAttribute('src') !== cur.answerImage) aimg.src = cur.answerImage; aimg.classList.remove('hidden'); } else aimg.classList.add('hidden');
+    $('#questionOverlay').classList.toggle('has-img', !!cur.image);
 
     if (cur.buzzSeq && cur.buzzSeq !== releaseSeq) { releaseSeq = cur.buzzSeq; releaseAt = performance.now(); }
 

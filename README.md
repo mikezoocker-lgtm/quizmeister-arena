@@ -72,14 +72,14 @@ Die Fragen stehen in `questions.json`:
     {
       "name": "Kategoriename",
       "questions": [
-        { "value": 100, "question": "Frage?", "answer": "Antwort", "image": "https://…/bild.jpg" }
+        { "value": 100, "question": "Frage?", "answer": "Antwort", "image": "https://…/bild.jpg", "answerImage": "" }
       ]
     }
   ]
 }
 ```
 
-`image` ist optional. Pro Kategorie werden die ersten N Fragen genutzt, je nach Einstellung „Stufen“ (3–6). Es erscheinen die ersten M Kategorien, je nach Einstellung „Kategorien“ (3–6).
+`image` (Bild zur Frage) und `answerImage` (Bild, das erst bei der Auflösung erscheint) sind optional. Erlaubt sind URLs, Pfade wie `/img/foto.jpg` (Datei in `public/img/` ablegen) oder im Editor hochgeladene Bilder. Für eine „Wer ist das?“-Kategorie im Editor auf **+ Bildkategorie** klicken und pro Feld ein Foto hochladen. Exportierte Dateien enthalten hochgeladene Bilder direkt eingebettet. Die Felder wählt immer der Quizmaster: Der Spieler am Zug sagt Kategorie und Wert an. Pro Kategorie werden die ersten N Fragen genutzt, je nach Einstellung „Stufen“ (3–6). Es erscheinen die ersten M Kategorien, je nach Einstellung „Kategorien“ (3–6).
 
 **Fragen dauerhaft speichern:** Das Dateisystem auf Render ist nicht dauerhaft. Bearbeitete Fragen gehen daher bei einem Neustart verloren.
 1. Im Host-Pult unter **Fragen-Editor → JSON exportieren** die Datei `questions.json` herunterladen.

@@ -12,21 +12,39 @@ if (!process.env.HOST_PASSWORD) console.warn('[Quizmeister] HOST_PASSWORD ist ni
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { pingInterval: 10000, pingTimeout: 20000, maxHttpBufferSize: 5e6 });
+const io = new Server(server, { pingInterval: 10000, pingTimeout: 20000, maxHttpBufferSize: 60e6 });
 
 const PUB = path.join(__dirname, 'public');
 const rooms = new Map();
+const media = new Map();
+const EXT = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/gif': 'gif', 'image/webp': 'webp' };
+// Hochgeladene Bilder (data:-URLs) werden im RAM abgelegt und als kurze /media/-URL ausgeliefert
+function storeMedia(src) {
+  src = String(src || '').trim();
+  const m = /^data:(image\/(?:jpeg|png|gif|webp));base64,([A-Za-z0-9+/=\s]+)$/.exec(src);
+  if (!m) return src.slice(0, 2000);
+  const buf = Buffer.from(m[2], 'base64');
+  if (buf.length > 8e6) return '';
+  const id = crypto.createHash('sha1').update(buf).digest('hex').slice(0, 20);
+  if (!media.has(id)) media.set(id, { type: m[1], buf });
+  return '/media/' + id + '.' + EXT[m[1]];
+}
 
 app.get('/healthz', (req, res) => res.json({ ok: true, rooms: rooms.size, uptime: Math.round(process.uptime()) }));
 ['host', 'play', 'watch'].forEach(p => app.get('/' + p, (req, res) => res.sendFile(path.join(PUB, p + '.html'))));
 app.get('/join/:code', (req, res) => res.redirect('/play?room=' + encodeURIComponent(String(req.params.code).toUpperCase())));
+app.get('/media/:id', (req, res) => {
+  const m = media.get(String(req.params.id).split('.')[0]);
+  if (!m) return res.status(404).end();
+  res.set('Content-Type', m.type).set('Cache-Control', 'public, max-age=31536000, immutable').send(m.buf);
+});
 app.use(express.static(PUB));
 
 // ---------- Konstanten ----------
 const COLORS = ['#ff5d73', '#4dabf7', '#51cf66', '#fcc419', '#cc5de8', '#ff922b', '#20c997', '#f06595', '#94d82d', '#748ffc', '#e8590c', '#15aabf'];
 const DEFAULT_SETTINGS = {
   answerTime: 30, buzzAnswerTime: 15, buzzOpenTime: 0, buzzWindow: 400,
-  penaltyBuzz: true, pickBy: 'player', textAnswers: false, fairBuzz: true, numCats: 5, numLevels: 5
+  penaltyBuzz: true, pickBy: 'host', textAnswers: false, fairBuzz: true, numCats: 5, numLevels: 5
 };
 const LIMITS = { answerTime: [5, 300], buzzAnswerTime: [5, 300], buzzOpenTime: [0, 300], buzzWindow: [0, 2000], numCats: [3, 6], numLevels: [3, 6] };
 const MIN_REACTION = 80;
@@ -50,7 +68,8 @@ function normalizeQuestions(q) {
           value: Number.isFinite(v) && v > 0 ? v : (li + 1) * 100,
           question: String(x.question || '').slice(0, 1000),
           answer: String(x.answer || '').slice(0, 1000),
-          image: x.image ? String(x.image).slice(0, 2000) : ''
+          image: storeMedia(x.image),
+          answerImage: storeMedia(x.answerImage)
         };
       })
     }))
@@ -188,7 +207,7 @@ function pick(room, c, l) {
   const q = cellQ(room, c, l), key = c + '-' + l;
   if (!q || room.used.has(key)) throw new Error('Dieses Feld ist nicht verfügbar.');
   room.current = {
-    c, l, key, value: q.value, question: q.question, answer: q.answer, image: q.image,
+    c, l, key, value: q.value, question: q.question, answer: q.answer, image: q.image, answerImage: q.answerImage,
     category: room.questions.categories[c].name, answerer: null, firstAnswerer: null, lockedOut: new Set(),
     timer: null, buzzSeq: 0, buzzOpenAt: 0, pending: [], buzzLog: [], textAnswers: {}, deltas: [],
     revealed: false, lastWrong: null, endReason: null
@@ -340,7 +359,6 @@ function applySettings(room, patch) {
   const s = room.settings;
   for (const [k, [a, b]] of Object.entries(LIMITS)) if (k in patch) { const v = Math.round(Number(patch[k])); if (Number.isFinite(v)) s[k] = clamp(v, a, b); }
   for (const k of ['penaltyBuzz', 'textAnswers', 'fairBuzz']) if (k in patch) s[k] = !!patch[k];
-  if (patch.pickBy === 'player' || patch.pickBy === 'host') s.pickBy = patch.pickBy;
 }
 
 function hostCommand(room, type, a) {
@@ -426,7 +444,7 @@ function publicState(room) {
     current: cur ? {
       c: cur.c, l: cur.l, category: cur.category, value: cur.value, question: cur.question, image: cur.image,
       answerer: cur.answerer, firstAnswerer: cur.firstAnswerer, lockedOut: [...cur.lockedOut], timer: timerView(cur.timer),
-      buzzSeq: room.phase === 'buzzOpen' ? cur.buzzSeq : 0, revealed: cur.revealed, answer: cur.revealed ? cur.answer : null,
+      buzzSeq: room.phase === 'buzzOpen' ? cur.buzzSeq : 0, revealed: cur.revealed, answer: cur.revealed ? cur.answer : null, answerImage: cur.revealed ? cur.answerImage : '',
       lastWrong: cur.lastWrong, endReason: cur.endReason
     } : null,
     serverNow: Date.now()
@@ -440,6 +458,7 @@ function hostState(room) {
   st.lastHistory = room.history[room.history.length - 1] || null;
   if (st.current) {
     st.current.answer = room.current.answer;
+    st.current.answerImage = room.current.answerImage;
     st.current.buzzLog = room.current.buzzLog;
     st.current.textAnswers = room.current.textAnswers;
   }
@@ -534,14 +553,6 @@ io.on('connection', socket => {
     if (!p || p.token !== d.token) return ack(cb, { ok: false, error: 'Deine Sitzung ist abgelaufen. Bitte neu beitreten.' });
     bindPlayer(room, p, socket);
     ack(cb, { ok: true, code: room.code, playerId: p.id, token: p.token });
-    broadcast(room);
-  });
-  socket.on('player:pick', (d, cb) => {
-    const { room, p } = ctx();
-    if (!p) return ack(cb, { ok: false, error: 'Nicht verbunden.' });
-    if (room.settings.pickBy !== 'player' || room.selector !== p.id) return ack(cb, { ok: false, error: 'Du bist gerade nicht am Zug.' });
-    try { pick(room, (d && d.c) | 0, (d && d.l) | 0); ack(cb, { ok: true }); }
-    catch (e) { ack(cb, { ok: false, error: e.message }); }
     broadcast(room);
   });
   socket.on('player:buzz', (d, cb) => {

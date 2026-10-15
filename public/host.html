@@ -59,7 +59,6 @@
           <label>Buzzer offen max. (s, 0 = ∞)<input type="number" data-key="buzzOpenTime" min="0" max="300"></label>
           <label>Buzzer-Fenster (ms)<input type="number" data-key="buzzWindow" min="0" max="2000" step="50"></label>
           <label>Buzzer-Modus<select data-key="fairBuzz"><option value="true">Fair (Latenz ausgeglichen)</option><option value="false">Einfach (wer zuerst ankommt)</option></select></label>
-          <label>Feldwahl<select data-key="pickBy"><option value="player">Spieler klickt selbst</option><option value="host">Quizmaster klickt</option></select></label>
           <label>Kategorien (3–6)<input type="number" data-key="numCats" min="3" max="6"></label>
           <label>Stufen (3–6)<input type="number" data-key="numLevels" min="3" max="6"></label>
           <label class="check full"><input type="checkbox" data-key="penaltyBuzz"> Halbe Punkte Abzug auch nach Buzzer</label>
@@ -71,6 +70,7 @@
       <summary>Fragen-Editor</summary>
       <div class="ed-toolbar">
         <button type="button" class="btn sm" id="edAddCat">+ Kategorie</button>
+        <button type="button" class="btn sm" id="edAddImgCat">+ Bildkategorie („Wer ist das?“)</button>
         <button type="button" class="btn sm primary" id="edApply">Fragen übernehmen</button>
         <button type="button" class="btn sm ghost" id="edReset">Änderungen verwerfen</button>
         <label class="btn sm ghost file-btn">JSON importieren<input type="file" id="edImport" accept=".json,application/json" hidden></label>

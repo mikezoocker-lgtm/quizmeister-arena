@@ -87,7 +87,7 @@
       h = `<h2>Lobby</h2><p>${st.players.length ? `<b>${st.players.length}</b> Spieler im Raum.` : 'Noch keine Spieler. Schick den Einladungslink oder lege rechts selbst Spieler an.'}</p>
         <div class="row"><label>Startspieler<select id="starterSel">${playerOptions('', true)}</select></label><button type="button" class="btn primary big" id="startBtn"${st.players.length ? '' : ' disabled'}>Spiel starten</button></div>`;
     } else if (st.phase === 'board') {
-      h = `<h2>Feldwahl</h2><p><b class="gold">${nm(st.selector)}</b> ist am Zug. ${st.settings.pickBy === 'player' ? 'Der Spieler wählt auf seinem Board – du kannst auch selbst ein Feld anklicken.' : 'Klicke das angesagte Feld auf dem Board.'}</p>
+      h = `<h2>Feldwahl</h2><p><b class="gold">${nm(st.selector)}</b> ist am Zug. Klicke das angesagte Feld auf dem Board.</p>
         <div class="row"><label>Zug geben an<select id="selSel">${playerOptions(st.selector, false)}</select></label></div>`;
     } else if (cur) {
       const canJudge = !!cur.answerer && (st.phase === 'question' || st.phase === 'buzzAnswer');
@@ -99,7 +99,7 @@
       const texts = Object.values(cur.textAnswers || {});
       h = `<div class="ctrl-meta"><span>${esc(cur.category)}</span><span class="gold">${cur.value}</span></div>
         <div class="ctrl-q">${esc(cur.question)}</div>${cur.image ? `<img class="ctrl-img" src="${esc(cur.image)}" alt="">` : ''}
-        <div class="ctrl-answer"><span>Antwort ${cur.revealed ? '(für alle sichtbar)' : '(nur für dich)'}</span><b>${esc(cur.answer)}</b></div>
+        <div class="ctrl-answer"><span>Antwort ${cur.revealed ? '(für alle sichtbar)' : '(nur für dich)'}</span><b>${esc(cur.answer)}</b>${cur.answerImage ? `<img class="ctrl-img" src="${esc(cur.answerImage)}" alt="">` : ''}</div>
         <div class="ctrl-status">${status}</div>
         ${texts.length ? `<div class="ctrl-texts"><span>Textantworten</span>${texts.map(t => `<div><b>${esc(t.name)}:</b> ${esc(t.text)}</div>`).join('')}</div>` : ''}
         ${st.phase === 'reveal' ? '<div class="btn-row"><button type="button" class="btn primary big" data-cmd="continue">Weiter zum Board</button></div>' : `
@@ -199,12 +199,42 @@
     let v;
     if (el.type === 'checkbox') v = el.checked;
     else if (k === 'fairBuzz') v = el.value === 'true';
-    else if (k === 'pickBy') v = el.value;
     else v = Number(el.value);
     cmd('settings', { patch: { [k]: v } });
   });
 
   // ---------- Fragen-Editor ----------
+  const blankQ = (value, question) => ({ value, question: question || '', answer: '', image: '', answerImage: '' });
+  function mediaField(f, label, v) {
+    return `<div class="ed-media" data-mf="${f}">
+      ${v ? `<img class="ed-thumb" src="${esc(v)}" alt="">` : '<div class="ed-thumb empty">kein Bild</div>'}
+      <div class="ed-media-body"><span class="ed-media-label">${label}</span>
+        <input class="ed-img" data-f="${f}" placeholder="Bild-URL oder hochladen" value="${v && v.startsWith('data:') ? '(hochgeladenes Bild)' : esc(v || '')}"${v && v.startsWith('data:') ? ' readonly' : ''}>
+        <div class="ed-media-btns"><label class="btn sm">Bild hochladen<input type="file" accept="image/*" data-up="${f}" hidden></label>${v ? '<button type="button" class="btn sm ghost danger" data-act="clrImg">Entfernen</button>' : ''}</div>
+      </div></div>`;
+  }
+  // Bild verkleinern (max. 1280 px) und als JPEG/PNG-data-URL zurückgeben
+  function shrinkImage(file) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file), img = new Image();
+      img.onload = () => {
+        const max = 1280, k = Math.min(1, max / Math.max(img.width, img.height));
+        const c = document.createElement('canvas');
+        c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+        const ctx = c.getContext('2d');
+        const png = file.type === 'image/png' || file.type === 'image/gif';
+        if (!png) { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height); }
+        ctx.drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url);
+        resolve(c.toDataURL(png ? 'image/png' : 'image/jpeg', 0.85));
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Bild konnte nicht gelesen werden.')); };
+      img.src = url;
+    });
+  }
+  function toDataURL(src) {
+    return fetch(src).then(r => r.blob()).then(b => new Promise(res => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.readAsDataURL(b); }));
+  }
   function setDirty(d) { dirty = d; $('#edDirty').textContent = d ? 'Ungespeicherte Änderungen' : ''; }
   function renderEditor() {
     if (!draft) return;
@@ -216,11 +246,18 @@
           <textarea class="ed-question" data-f="question" rows="2" placeholder="Frage">${esc(q.question)}</textarea>
           <button type="button" class="btn sm ghost danger ed-del" data-act="delQ" title="Frage löschen">×</button>
           <input class="ed-ans" data-f="answer" placeholder="Antwort" value="${esc(q.answer)}">
-          <input class="ed-img" data-f="image" placeholder="Bild-URL (optional)" value="${esc(q.image || '')}">
+          ${mediaField('image', 'Fragebild', q.image)}
+          ${mediaField('answerImage', 'Bild zur Auflösung', q.answerImage)}
         </div>`).join('')}
         <button type="button" class="btn sm ghost" data-act="addQ">+ Frage</button>
       </div>`).join('') || '<p class="muted">Keine Kategorien vorhanden.</p>';
   }
+  $('#editor').addEventListener('change', e => {
+    const f = e.target.dataset.up;
+    if (!f || !e.target.files[0]) return;
+    const ci = +e.target.closest('.ed-cat').dataset.ci, q = draft.categories[ci].questions[+e.target.closest('.ed-q').dataset.li];
+    shrinkImage(e.target.files[0]).then(d => { q[f] = d; setDirty(true); renderEditor(); }, err => Q.toast(err.message, 'bad'));
+  });
   $('#editor').addEventListener('input', e => {
     const f = e.target.dataset.f;
     if (!f) return;
@@ -237,12 +274,14 @@
     if (!b) return;
     const ci = +b.closest('.ed-cat').dataset.ci, cat = draft.categories[ci];
     if (b.dataset.act === 'delCat') { if (!confirm(`Kategorie „${cat.name}“ löschen?`)) return; draft.categories.splice(ci, 1); }
-    else if (b.dataset.act === 'addQ') { const last = cat.questions[cat.questions.length - 1]; cat.questions.push({ value: (last ? last.value : 0) + 100, question: '', answer: '', image: '' }); }
+    else if (b.dataset.act === 'addQ') { const last = cat.questions[cat.questions.length - 1]; cat.questions.push(blankQ((last ? last.value : 0) + 100, last && cat.imageCat ? last.question : '')); }
+    else if (b.dataset.act === 'clrImg') cat.questions[+b.closest('.ed-q').dataset.li][b.closest('[data-mf]').dataset.mf] = '';
     else if (b.dataset.act === 'delQ') cat.questions.splice(+b.closest('.ed-q').dataset.li, 1);
     setDirty(true);
     renderEditor();
   });
-  $('#edAddCat').onclick = () => { draft.categories.push({ name: 'Neue Kategorie', questions: [1, 2, 3, 4, 5].map(i => ({ value: i * 100, question: '', answer: '', image: '' })) }); setDirty(true); renderEditor(); };
+  $('#edAddCat').onclick = () => { draft.categories.push({ name: 'Neue Kategorie', questions: [1, 2, 3, 4, 5].map(i => blankQ(i * 100)) }); setDirty(true); renderEditor(); };
+  $('#edAddImgCat').onclick = () => { draft.categories.push({ name: 'Wer ist das?', imageCat: true, questions: [1, 2, 3, 4, 5].map(i => blankQ(i * 100, 'Wer ist das?')) }); setDirty(true); renderEditor(); Q.toast('Bildkategorie angelegt – jetzt pro Feld ein Bild hochladen.'); };
   $('#edApply').onclick = () => cmd('questions', { data: draft }).then(r => { if (r.ok) { setDirty(false); Q.toast('Fragen übernommen.'); } });
   $('#edReset').onclick = () => { if (dirty && !confirm('Änderungen verwerfen?')) return; draft = JSON.parse(JSON.stringify(st.questions)); setDirty(false); renderEditor(); };
   $('#edImport').addEventListener('change', e => {
@@ -254,7 +293,7 @@
         let d = JSON.parse(rd.result);
         if (Array.isArray(d)) d = { categories: d };
         if (!d || !Array.isArray(d.categories)) throw new Error('Erwartet wird { "categories": [...] }');
-        d.categories.forEach(c => { c.name = c.name || 'Kategorie'; c.questions = (Array.isArray(c.questions) ? c.questions : []).map((q, i) => ({ value: Number(q.value) || (i + 1) * 100, question: q.question || '', answer: q.answer || '', image: q.image || '' })); });
+        d.categories.forEach(c => { c.name = c.name || 'Kategorie'; c.questions = (Array.isArray(c.questions) ? c.questions : []).map((q, i) => ({ value: Number(q.value) || (i + 1) * 100, question: q.question || '', answer: q.answer || '', image: q.image || '', answerImage: q.answerImage || '' })); });
         draft = d; setDirty(true); renderEditor();
         Q.toast('Importiert – mit „Fragen übernehmen“ aktivieren.');
       } catch (err) { Q.toast('Import fehlgeschlagen: ' + err.message, 'bad'); }
@@ -262,8 +301,13 @@
     };
     rd.readAsText(f);
   });
-  $('#edExport').onclick = () => {
-    const blob = new Blob([JSON.stringify(draft, null, 2)], { type: 'application/json' });
+  $('#edExport').onclick = async () => {
+    // Bilder vom Server wieder einbetten, damit die Datei nach einem Neustart vollständig ist
+    const out = JSON.parse(JSON.stringify(draft));
+    try {
+      for (const c of out.categories) for (const q of c.questions) for (const f of ['image', 'answerImage']) if (q[f] && q[f].startsWith('/media/')) q[f] = await toDataURL(q[f]);
+    } catch (e) { Q.toast('Ein Bild konnte nicht eingebettet werden.', 'bad'); }
+    const blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = 'questions.json';
